@@ -1,5 +1,5 @@
 import re
-def to_two(num: int) -> str:
+def to_two(num: int, length: int = 5) -> str:
     is_nega = 0
     li = []
     if num < 0:
@@ -26,6 +26,7 @@ def to_two(num: int) -> str:
     s = ''
     while li:
         s += str(li.pop())
+    s = (length - len(s)) * str(is_nega) + s
     return s
 
 def to_o0(num: str) -> str:
@@ -52,8 +53,8 @@ opcodes = {
     'add': ['0110011', '000']
 }
 
-def ext_regi(rs: str, length:int = 5) -> str:
-    return (length - len(rs)) * "0" + rs
+# def ext_regi(rs: str, length:int = 5, nega = 0) -> str:
+#     return (length - len(rs)) * str(nega) + rs
 
 while True:
     code = input().split()
@@ -61,60 +62,73 @@ while True:
     if code[0] == 'q':
         break
     op = code[0]
+    #is_nega = 0
     if op == 'lui' or op == 'LUI':
         rd, imm = map(int, re.split("[,，]", code[1]))
         if imm > 524287 or rd > 31:
             print("warning：超过最大上限")
+            continue
         elif imm < -524288 or rd < 0:
             print("warning：超过最低下限")
-        rd, imm = map(str, (to_two(rd), to_two(imm)))
-        imm = (20 - len(imm)) * "0" + imm
-        rd = (5 - len(rd)) * "0" + rd
+            continue
+        #if imm < 0: is_nega = 1
+        rd, imm = map(str, (to_two(rd), to_two(imm, 20)))
+        # imm = ext_regi(imm, 20)
+        # rd = ext_regi(rd)
         out = imm + rd + opcodes['lui']
         print(out)
     elif op == 'addi' or op == 'ADDI':
         rd, rs1, imm = map(int, re.split("[,，]", code[1]))
         if imm > 2047 or rd > 31 or rs1 > 31:
             print("warning：超过最大上限")
+            continue
         elif imm < -2048 or rd < 0 or rs1 < 0:
             print("warning：超过最低下限")
-        rd, rs1, imm = map(str, (to_two(rd), to_two(rs1), to_two(imm)))
-        imm = ext_regi(imm, 12)
-        rs1 = ext_regi(rs1)
-        rd = ext_regi(rd)
+            continue
+        rd, rs1, imm = map(str, (to_two(rd), to_two(rs1), to_two(imm, 12)))
+        #if imm < 0: is_nega = 1
+        # imm = ext_regi(imm, 12)
+        # rs1 = ext_regi(rs1)
+        # rd = ext_regi(rd)
         out = imm + rs1 + opcodes['addi'][1] + rd + opcodes['addi'][0]
         print(out)
     elif op == 'add' or op == 'ADD':
         rd, rs1, rs2 = map(int, re.split("[,，]", code[1]))
         if rs1 > 31 or rs2 > 31 or rd > 31:
             print("warning：超过最大上限")
+            continue
         elif rs1 < 0 or rs2 < 0 or rd < 0:
             print("warning：超过最低下限")
+            continue
         rd, rs1, rs2 = map(str, (to_two(rd), to_two(rs1), to_two(rs2)))
-        rd = ext_regi(rd)
-        rs2 = ext_regi(rs2)
-        rs1 = ext_regi(rs1)
+        # rd = ext_regi(rd)
+        # rs2 = ext_regi(rs2)
+        # rs1 = ext_regi(rs1)
         out = "0"*7 + rs2 + rs1 + opcodes['add'][1] + rd + opcodes['add'][0]
         print(out)
     elif op in ['sw', 'SW', 'sb', 'SB']:
         rs2, imm, rs1 = map(int, re.split("[,，()（）]", code[1])[0:-1])
         if imm > 2047 or rs2 > 31 or rs1 > 31:
             print("warning：超过最大上限")
+            continue
         elif imm < -2048 or rs2 < 0 or rs1 < 0:
             print("warning：超过最低下限")
-        rs2, imm, rs1 = to_two(rs2), to_two(imm), to_two(rs1)
-        rs1 = ext_regi(rs1)
-        rs2 = ext_regi(rs2)
-        imm = ext_regi(imm, 12)
+            continue
+        rs2, imm, rs1 = to_two(rs2), to_two(imm, 12), to_two(rs1)
+        # rs1 = ext_regi(rs1)
+        # rs2 = ext_regi(rs2)
+        # imm = ext_regi(imm, 12)
         out = imm[0:7] + rs2 + rs1 + opcodes[op][1] + imm[7:] + opcodes[op][0]
         print(out)
     elif op in ['jalr', "JALR", 'lw', 'LW', 'lbu', "LBU"]:
         rd, imm, rs1 = map(int, re.split("[,，()（）]", code[1])[0:-1])
         if imm > 2047 or rd > 31 or rs1 > 31:
             print("warning：超过最大上限")
+            continue
         elif imm < -2048 or rd < 0 or rs1 < 0:
             print("warning：超过最低下限")
-        rd, imm, rs1 = ext_regi(to_two(rd)), ext_regi(to_two(imm), 12), ext_regi(to_two(rs1))
+            continue
+        rd, imm, rs1 = to_two(rd), to_two(imm, 12), to_two(rs1)
         out = imm + rs1 + opcodes[op][1] + rd + opcodes[op][0]
         print(out)
 
